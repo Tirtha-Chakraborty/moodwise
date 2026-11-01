@@ -45,6 +45,8 @@ Update docs in the same PR as the change that caused the update. A PR that makes
 | Scope creep: an idea that belongs to a later version | Say so, check it against the current version's "deliberately skips" list, and park it as an open question tagged with its target version |
 | Contradiction: a new decision conflicts with an earlier decision or the plan | Name the conflict before continuing, and propose which file should change |
 
+Always keep all docs consistent with each other: no conflicts and nothing stale. When a change touches one doc, check the README, project plan, weekly plan, PRD, TDD, decision log and open questions for statements it affects, and fix them in the same PR.
+
 The decision log is append-only. A reversed decision gets a new row and the old row stays. A resolved open question moves to the decision log.
 
 ## Session rhythm

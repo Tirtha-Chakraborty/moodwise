@@ -25,7 +25,7 @@ Last updated: 2026-11-01
 | 1 | Static page showing the frozen taxonomy and ~20 dataset items, plus PRD and TDD draft | Scope, docs, taxonomy freeze, dataset schema |
 | 2 | **Walking skeleton:** form, handler, `FakeClassifier`, catalog, results page with mood label and song links, running locally | Repo setup, interfaces, loader with validation, `/healthz`, CI, spend-guard design (Q5) |
 | 3 | **Real classification:** a phrase hits the LLM and returns mood-matched items | LLM classifier, enum validation, timeouts, unit tests with a fake client |
-| 4 | **Hardened and reviewed:** bad input, empty buckets, LLM failures show sensible errors; spend guard in place | Handler validation, error shape, per-IP limit, review pass |
+| 4 | **Hardened and reviewed:** bad input, empty buckets, LLM failures show sensible errors; spend guard in place | Handler validation, error shape, spend guard (per Q5), review pass |
 | 5 | **Trustworthy:** test suite green with `-race`, classifier eval (90% typical, injection set 100%), injection cases checked | Handler and e2e tests, eval set, graceful shutdown |
 | 6 | **Live at a public URL** | Dockerfile, deploy, smoke test, README, retro |
 

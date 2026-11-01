@@ -19,8 +19,11 @@ Last updated: 2026-11-01
 |---|----------|--------|----------|---------|
 | Q3 | Build a stable frontend with dummy data first, or backend first? | 2026-10-03, Week 1 planning | 2026-10-03 | Backend-first with a vertical slice each week. A throwaway static page in Week 1; walking skeleton with `FakeClassifier` in Week 2; real LLM in Week 3. The UI is trivial in V1, the risk is in the backend, and the project's goal is backend learning. |
 | Q4 | Is scope and docs a "Week 0"? | 2026-10-03, Week 1 planning | 2026-10-03 | No. Week 1 is scope and docs, and the plan stays at six weeks. Keep the PRD to one page and treat the TDD as a first draft to revise in Week 2. |
+| Q7 | How should the taxonomy and classifier handle uncertain feelings versus input with no mood? | 2026-11-01 | 2026-11-01 | A "lost" bucket for uncertain feelings; an `unclear` classifier output (not a bucket) for no-mood and injection input. See Decisions Log. |
 
 ## Rules
+
+- Question IDs are never reused or renumbered. There is no Q6.
 
 - Each question gets an ID, the stage it was raised, and the stage it blocks.
 - A question moves to Resolved only when you've answered it in your own words. The answer is recorded under Outcome and also goes into the TDD "Key decisions" section.
