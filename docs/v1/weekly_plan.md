@@ -6,9 +6,9 @@ Last updated: 2026-11-01
 
 - **Duration:** 6 weeks, about 3-4 hrs/week (roughly 20-22 hrs total)
 - **Language:** Go (see [Decision Log](../decision_logs.md))
-- **Approach:** Backend-first, one thin end-to-end slice per week (see Open Questions Q3)
+- **Approach:** Backend-first, one thin end-to-end slice per week (see the Decision Log, Q3)
 - **Rule for slices:** each week's demo must be the whole loop, thin, not one layer thick. "The DB layer is done" is a horizontal layer and does not count as a demo.
-- **Week 1 is the scope and docs week.** There is no Week 0 (see Open Questions Q4).
+- **Week 1 is the scope and docs week.** There is no Week 0 (see the Decision Log, Q4).
 
 ## Working agreement
 
@@ -94,7 +94,7 @@ Last updated: 2026-11-01
 - Deploy to a simple host (Fly.io, Render, or Railway). Secrets via the platform, plus a healthcheck.
 - Smoke test the live URL, then trigger one failure on purpose (for example a bad API key) and confirm it fails gracefully.
 - README: what it is, how to run it, architecture sketch, known limitations. Limitations must say it is not injection-proof, that phrases go to a third-party AI provider, and that the app doesn't store them.
-- Update the Decision Log and write a short retro listing what V2 needs from V1's design.
+- Update the Decision Log and write the short retro in [retro.md](retro.md) listing what V2 needs from V1's design.
 
 **Exit gate:** walk through a request from browser to response, naming where it can fail and what the user sees in each case.
 

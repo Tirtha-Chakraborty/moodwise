@@ -2,6 +2,8 @@
 
 Last updated: 2026-11-01
 
+Only unresolved questions live here. When a question is resolved, it is removed from this file and logged in [decision_logs.md](decision_logs.md) as a row ending with "(Resolves Q#.)".
+
 ## Open
 
 | # | Question | Raised | Stage it blocks | Status |
@@ -13,20 +15,10 @@ Last updated: 2026-11-01
 | Q9 | Which link format for songs: direct track URL (can break) or a search URL (more stable)? Which service? | 2026-11-01, PRD drafting | Week 1: dataset schema | Open |
 | Q10 | Do the Week 2-3 time estimates still hold with the mood display, song links, `unclear` handling and an extra bucket to curate? | 2026-11-01, PRD drafting | Week 2: check once the TDD is finalized | Open. No hours changed yet. |
 
-## Resolved
-
-| # | Question | Raised | Resolved | Outcome |
-|---|----------|--------|----------|---------|
-| Q3 | Build a stable frontend with dummy data first, or backend first? | 2026-10-03, Week 1 planning | 2026-10-03 | Backend-first with a vertical slice each week. A throwaway static page in Week 1; walking skeleton with `FakeClassifier` in Week 2; real LLM in Week 3. The UI is trivial in V1, the risk is in the backend, and the project's goal is backend learning. |
-| Q4 | Is scope and docs a "Week 0"? | 2026-10-03, Week 1 planning | 2026-10-03 | No. Week 1 is scope and docs, and the plan stays at six weeks. Keep the PRD to one page and treat the TDD as a first draft to revise in Week 2. |
-| Q7 | How should the taxonomy and classifier handle uncertain feelings versus input with no mood? | 2026-11-01 | 2026-11-01 | A "lost" bucket for uncertain feelings; an `unclear` classifier output (not a bucket) for no-mood and injection input. See Decisions Log. |
-
 ## Rules
 
-- Question IDs are never reused or renumbered. There is no Q6.
-
 - Each question gets an ID, the stage it was raised, and the stage it blocks.
-- A question moves to Resolved only when you've answered it in your own words. The answer is recorded under Outcome and also goes into the TDD "Key decisions" section.
-- Any decision that comes out of a question also goes into the Decision Log.
+- IDs are never reused or renumbered. Q3, Q4 and Q7 are resolved and live in the Decision Log; there is no Q6.
+- A question is resolved only when you've answered it in your own words. The answer goes into the TDD "Key decisions" section, and a row ending with "(Resolves Q#.)" goes into the Decision Log. Then remove the question from this file.
 - A week isn't closed until every question that blocks it is resolved.
 - Ideas that belong to a later version are parked here too, tagged with their target version, for example `[V3]`.
