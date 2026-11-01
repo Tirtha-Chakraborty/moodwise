@@ -59,6 +59,14 @@ The decision log is append-only. A reversed decision gets a new row and the old 
 - Never leave TODO or FIXME comments in code, and don't write paragraph-long "to do later" comments. Add the follow-up to docs/todo.md with a trigger instead.
 - Comments explain why the code is the way it is, not what is still missing.
 
+## Skills
+
+Project skills live in `.claude/skills/<name>/SKILL.md` and are committed to the repo. They are run by the user with `/<name>`.
+
+- `/create-pr`: checks the docs hygiene and the code, then pushes the branch and opens the PR.
+
+When you add a skill, list it here in the same PR.
+
 ## Session rhythm
 
 - At the start of each session, ask whether the docs are in sync with the latest planning discussion in the Claude Project.
