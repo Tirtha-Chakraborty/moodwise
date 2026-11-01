@@ -1,9 +1,26 @@
-# Decision log
+# Moodwise: Decisions Log
 
 Decisions made on this project, and why. This log is append-only: a reversed decision gets a new row and the old row stays.
 
-| Date | Decision | Rationale | Alternatives rejected |
-| --- | --- | --- | --- |
-| 2026-11-01 | Keep project docs in the repo under `docs/`, with a `docs/v<N>/` folder for each milestone | Docs sit next to the code and change in the same PR, so the reason for a change stays attached to it | Keeping docs only in the Claude Project, where they drift from the repo |
-| 2026-11-01 | Name the shared docs `project_plan.md`, `open_questions.md` and `decision_logs.md` | Matches the layout the user specified | `decisions.md` and `open-questions.md`, the earlier example names |
-| 2026-11-01 | `CLAUDE.md` imports only the decision log and the current version's weekly plan and TDD, and lists other docs by path | Keeps per-session context small while always loading what constrains current work | Importing every doc in every session |
+## Decisions
+
+| Date | Decision | Rationale |
+| --- | --- | --- |
+| 2026-10-03 | Build V1 in Go | Reinforces the language used in the work backend service, keeping personal-project skills directly transferable |
+| 2026-10-03 | Backend-first, with one thin end-to-end slice per week (throwaway static page in Week 1, walking skeleton with `FakeClassifier` in Week 2, real LLM in Week 3). Rejected: stable frontend with dummy data first. | The UI is trivial in V1, the risk is in the backend, and the goal is backend learning. (From resolved Q3, which wasn't in the Decisions Log.) |
+| 2026-10-03 | Scope and docs are Week 1, not a "Week 0"; the plan stays at six weeks. (From resolved Q4.) | Keeps the plan to six weeks. PRD stays to one page, TDD is a first draft revised in Week 2. |
+| 2026-11-01 | V1 is an end-to-end baseline: the LLM does one job (classify a phrase into a fixed mood or `unclear`) and everything after is a lookup in a hand-tagged dataset. Rejected: perfecting mood matching first. | Matching is replaced in V2, while the skeleton (handler, validation, deploy, tests) carries forward. You can't improve matching without a deployed loop and an eval to measure it. |
+| 2026-11-01 | Bounded cost (spend guard) is an in-scope V1 requirement. The PRD states the requirement only; the mechanism is decided in the TDD (see Q5). Rejected: leaving it out until V4. | A public endpoint that spends money per request needs a safeguard. Matches Weekly Plan Week 4. |
+| 2026-11-01 | V1 feedback is collected through a Google Form, linked on both the home page and the results page. Rejected: mailto link, storing feedback in the backend. | No database in V1, and the form needs no backend code. |
+| 2026-11-01 | Thin buckets show fewer items; never pad with another mood's items. Rejected: padding. | Incoherent results break the core promise. Fewer results is honest and shows which bucket needs curation. |
+| 2026-11-01 | The results page shows the detected mood (e.g. "Sounds nostalgic"). | Near-zero cost, makes the classification visible, helps on a portfolio piece. |
+| 2026-11-01 | Each song links out to an external service; the URL is stored in the dataset item. Link format is a TDD detail (see Q9). | Gives the visitor somewhere to go from a result. |
+| 2026-11-01 | Books and pictures stay out of V1 (books V2, pictures V3). The dataset schema has a `type` field (`song` or `quote`). Rejected: adding books to V1. | Books add about a week of curation to a ~20-hour budget; pictures add licensing, hosting and subjectivity problems. Both are on the Project Plan's skip list. |
+| 2026-11-01 | The taxonomy includes a "lost" bucket for uncertain or unsettled feelings. The classifier may also return `unclear`, which is not a bucket and has no items; the handler turns it into a friendly message. Rejected: no "lost" bucket. | Uncertain feelings are legitimate input and deserve results; input with no mood needs a clean no-result path. |
+| 2026-11-01 | Prompt-injection handling: the prompt tells the model to return `unclear` for instruction-style input, and the code guarantees only enum-or-`unclear` output. The eval's injection set (5-8 phrases) must pass 100%. A valid bucket returned for an injection phrase is a fail. The README must not claim injection-proof. | Injection can't be detected deterministically. Damage is bounded (no tools, no data), and a strict pass condition is the achievable V1 guarantee. |
+| 2026-11-01 | Classifier eval: 90% on typical phrases (~20 in the first set). `acceptable` moods are written generously and before running. Ambiguous and injection phrases are reported separately. It is a sanity check for gross errors and a regression check after prompt changes, run on demand against the real classifier. Rejected: 80% (too loose), 98% (needs a far larger sample, invites overfitting). | One phrase is worth 5 points; 90% leaves room for labeler disagreement and LLM variance. Near-synonym distinctions are a V2 taxonomy matter. |
+| 2026-11-01 | Within a mood, results are a random sample with an injected random source (seeded in tests). Rejected: fixed order, deterministic shuffle. | Repeat visitors see variety, tests stay exact, and a deterministic shuffle solves a problem that disappears in V2. |
+| 2026-11-01 | CI runs `go vet` and unit tests on every change using a fake classifier and fake LLM client; `-race` is added in Week 5. The eval is not in CI. Production failures are caught via logs, `/healthz` and the provider dashboard. Rejected: running the eval in CI. | Each layer guards a different failure point: CI catches code bugs, the eval catches prompt regressions, logs and healthchecks cover what's live. |
+| 2026-11-01 | Keep project docs in the repo under `docs/`, with a `docs/v<N>/` folder for each milestone. Rejected: keeping docs only in the Claude Project. | Docs sit next to the code and change in the same PR, so the reason for a change stays attached to it. |
+| 2026-11-01 | Name the shared docs `project_plan.md`, `open_questions.md` and `decision_logs.md`. Rejected: `decisions.md` and `open-questions.md`, the earlier example names. | Matches the layout specified for the repo. |
+| 2026-11-01 | `CLAUDE.md` imports only the decision log and the current version's weekly plan and TDD, and lists other docs by path. Rejected: importing every doc in every session. | Keeps per-session context small while always loading what constrains current work. |

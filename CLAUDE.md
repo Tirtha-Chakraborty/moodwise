@@ -40,7 +40,7 @@ Update docs in the same PR as the change that caused the update. A PR that makes
 | Trigger | Action |
 | --- | --- |
 | Decision: a choice between alternatives, or "let's go with X" | Append a row to docs/decision_logs.md |
-| Open question: "later", "not now", an unresolved doubt | Add a row to docs/open_questions.md, including when to revisit it |
+| Open question: "later", "not now", an unresolved doubt | Add a row to docs/open_questions.md with the next free Q number, the stage it blocks (when to revisit it) and its status |
 | Plan change: the scope, order or timing of a milestone or week changes | Edit the project plan or weekly plan, and show before and after in the PR description |
 | Scope creep: an idea that belongs to a later version | Say so, check it against the current version's "deliberately skips" list, and park it as an open question tagged with its target version |
 | Contradiction: a new decision conflicts with an earlier decision or the plan | Name the conflict before continuing, and propose which file should change |
