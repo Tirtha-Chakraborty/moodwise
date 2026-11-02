@@ -1,6 +1,6 @@
 # Moodwise V1: Week-by-Week Plan
 
-Last updated: 2026-11-01
+Last updated: 2026-11-02
 
 ## Overview
 
@@ -35,12 +35,12 @@ Last updated: 2026-11-01
 
 1. Draft the **PRD** (1 page): problem, user flow, V1 in/out of scope (from the Project Plan), success criteria. Example: "a phrase returns 3-5 relevant items in under 3s, deployed at a public URL."
 2. Draft the TDD **"Key decisions and why"** section, starting with the taxonomy (answers Q1). Each entry: the decision, the rejected alternative, and what breaks if it's wrong.
-3. **Freeze the mood taxonomy:** 6-8 buckets (including a "lost" bucket for uncertain feelings), one-line definition each. The classifier's separate "unclear" output is not a bucket.
+3. **Freeze the mood taxonomy:** 6-10 buckets (including a "lost" bucket for uncertain feelings), one-line definition each. The classifier's separate "unclear" output is not a bucket.
 4. Draft the rest of the **TDD (first draft)**: components, request flow, API contract (`POST /api/match`), JSON item schema, failure-modes table (LLM timeout, invalid LLM output, empty bucket, bad input, unclear / injection input).
 5. Write the dataset schema (type: song or quote; song link URL) and curate the first ~20 items.
 6. Build the throwaway static page that renders the taxonomy and sample items.
 
-**Blocking questions:** Q1, Q8, Q9 (Q1: what breaks, and in how many places, if a bucket is renamed or added after the dataset is half built).
+**Blocking questions:** Q9 (Q1 and Q8 were resolved on 2026-11-02; see the Decision Log. Q1 was: what breaks, and in how many places, if a bucket is renamed or added after the dataset is half built).
 **Exit gate:** explain why the taxonomy had to be frozen before building anything else.
 
 ## Week 2: Design and walking skeleton (~3.5 hrs)
@@ -101,7 +101,7 @@ Last updated: 2026-11-01
 ## Risks to watch
 
 - **Dataset curation** is the hidden time sink, so it is spread across Weeks 1-3. Don't leave it to the end.
-- **Curation load:** 8 moods x ~8-12 items. If it runs long, trim a mood rather than thinning all of them.
+- **Curation load:** 10 moods x ~5-10 items. If it runs long, trim a mood rather than thinning all of them.
 - **Taxonomy churn:** changing buckets mid-build invalidates the prompt, the tags, and the tests.
 - **Scope creep:** no embeddings, no third category, no database. Those are V2 and V3.
 - **Docs ballooning in Week 1:** keep the PRD to one page and treat the TDD as a first draft to revise in Week 2.

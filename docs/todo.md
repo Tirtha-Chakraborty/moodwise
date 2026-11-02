@@ -9,3 +9,4 @@ When an item is done, delete the row. Anything that is a real choice between alt
 | 2026-11-01 | Add build, test and run commands to CLAUDE.md (for example `make test`, `make vet`, `make run`) | The first code PR lands the Makefile (Week 2) |
 | 2026-11-01 | Update the Claude Project instructions: the repo docs are now the source of truth, and the Project plan is directional while the PRD is exact | Once the docs PR is merged |
 | 2026-11-01 | Migrate any remaining Project context copies into the repo, then treat the Project copies as periodic snapshots | The first code PR lands |
+| 2026-11-02 | Decide the classifier prompt's tie-breaker for phrases that fit two moods (for example "choose the mood the feeling is mostly about"), and cover heartbreak versus angry/sad and love versus nostalgic in the eval's ambiguous set | Week 3, when the classifier prompt is written |
