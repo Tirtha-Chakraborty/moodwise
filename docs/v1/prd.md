@@ -1,6 +1,6 @@
 # Moodwise V1: Product Requirements
 
-Status: Draft 2 · 2026-11-01
+Status: Draft 3 · 2026-11-02
 
 ## Problem
 
@@ -21,11 +21,11 @@ Anyone who opens the public URL. V1 doubles as a portfolio piece, so a visitor n
 
 ## What the visitor gets
 
-A small, hand-picked set of songs and quotes (50-100 items), grouped under 6-8 fixed moods, including one for uncertain or unsettled feelings. Similar feelings may return the same picks, and repeat visits draw different items at random from the same small pool.
+A small, hand-picked set of songs and quotes (50-100 items), grouped under 6-10 fixed moods, including one for uncertain or unsettled feelings. Similar feelings may return the same picks, and repeat visits draw different items at random from the same small pool.
 
 ## Scope
 
-**In:** single-phrase form; mood classification into 6-8 fixed moods; hand-curated songs and quotes; results page with detected mood, two sections and song links; public URL; feedback form link; bounded cost (see Cost and abuse).
+**In:** single-phrase form; mood classification into 6-10 fixed moods; hand-curated songs and quotes; results page with detected mood, two sections and song links; public URL; feedback form link; bounded cost (see Cost and abuse).
 
 **Out (deliberately):** books and pictures (books V2, pictures V3); embeddings and semantic matching; external data sources; caching; a database; accounts and personalization; full rate limiting (V4).
 
