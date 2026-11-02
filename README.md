@@ -31,6 +31,7 @@ See the [project plan](docs/project_plan.md) for how the versions build on each 
 | [docs/decision_logs.md](docs/decision_logs.md) | Decisions made, and why |
 | [docs/open_questions.md](docs/open_questions.md) | Items parked for later |
 | [docs/todo.md](docs/todo.md) | Chores and follow-ups, each with a trigger |
+| [docs/nice_to_have_features.md](docs/nice_to_have_features.md) | Optional extras not in any version's scope |
 | [.claude/skills/](.claude/skills/) | Project skills for Claude Code, such as `/create-pr` |
 | [docs/v1/](docs/v1/) | Weekly plan, PRD, TDD and retro for V1 |
 

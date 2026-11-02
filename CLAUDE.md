@@ -21,6 +21,7 @@ Read these when relevant:
 - docs/v1/prd.md: V1 requirements.
 - docs/v1/retro.md: written in the last week of the version. It hands over what the next version needs.
 - docs/todo.md: chores and follow-ups, each with a trigger. Check it at session start and at milestone wrap-up, and raise anything whose trigger has arrived.
+- docs/nice_to_have_features.md: optional extras not in any version's scope. Check it at milestone wrap-up.
 
 The PRD and TDD are the spec. Follow them, and flag any deviation as a plan change or a decision.
 
@@ -46,13 +47,24 @@ Update docs in the same PR as the change that caused the update. A PR that makes
 | Decision: a choice between alternatives, or "let's go with X" | Append a row to docs/decision_logs.md |
 | Open question: "later", "not now", an unresolved doubt | Add a row to docs/open_questions.md with the next free Q number, the stage it blocks (when to revisit it) and its status |
 | Plan change: the scope, order or timing of a milestone or week changes | Edit the project plan or weekly plan, and show before and after in the PR description |
-| Scope creep: an idea that belongs to a later version | Say so, check it against the current version's "deliberately skips" list, and park it as an open question tagged with its target version |
+| Scope creep: an idea that belongs to a later version | Say so, check it against the current version's "deliberately skips" list, and park it with its target version: an optional extra goes in docs/nice_to_have_features.md, an unresolved design question goes in docs/open_questions.md |
 | Contradiction: a new decision conflicts with an earlier decision or the plan | Name the conflict before continuing, and propose which file should change |
 | Chore: a follow-up that is not a decision or an open question (for example "add X when Y lands") | Add a row to docs/todo.md with a trigger for when to do it |
 
 Always keep all docs consistent with each other: no conflicts and nothing stale. When a change touches one doc, check the README, project plan, weekly plan, PRD, TDD, decision log and open questions for statements it affects, and fix them in the same PR.
 
 The decision log is append-only. A reversed decision gets a new row and the old row stays. A resolved open question is removed from docs/open_questions.md and logged as a decision row ending with "(Resolves Q#.)". Question IDs are never reused.
+
+## Branching
+
+- Every change, docs or code, starts on a new branch cut from an up-to-date `main`. Never commit or push to `main` directly.
+- Branch names use a prefix for the kind of change, for example `docs/<topic>`, `feat/<topic>` or `fix/<topic>`.
+- Create the branch before editing anything, so no work lands on `main` by accident.
+
+## Git safety
+
+- Never run `git add -f` or `git add --force`, and never stage ignored files by any other route. Ignored and excluded files are local on purpose.
+- Never run `git clean` with `-x` or `-X` (for example `git clean -fdx`). It deletes ignored files, which can't be recovered from git.
 
 ## Code conventions
 
@@ -64,6 +76,7 @@ The decision log is append-only. A reversed decision gets a new row and the old 
 Project skills live in `.claude/skills/<name>/SKILL.md` and are committed to the repo. They are run by the user with `/<name>`.
 
 - `/create-pr`: checks the docs hygiene and the code, then pushes the branch and opens the PR.
+- `/recap-learning`: writes a copy-pastable recap of the session's questions, answers, corrections and learning for the user's private notes. It outputs text only.
 
 When you add a skill, list it here in the same PR.
 

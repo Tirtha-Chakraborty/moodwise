@@ -14,7 +14,7 @@ Anyone who opens the public URL. V1 doubles as a portfolio piece, so a visitor n
 
 1. The visitor types a phrase (a feeling, a lyric, a single word like "nostalgic") into one form.
 2. The system works out the mood behind it and shows it ("Sounds nostalgic").
-3. One results page shows up to 3 songs and up to 2 quotes in separate sections. Each song links out to an external service.
+3. One results page shows up to 3 songs and up to 2 quotes in separate sections. Each song links out to Spotify, YouTube or both.
 4. If the phrase doesn't describe a feeling (gibberish, off-topic, instructions aimed at the system), the visitor sees a friendly "try describing how you feel" message and no results.
 5. If something fails, the visitor sees a clear message, never a crash or a blank page.
 6. A feedback form link appears on the home page and the results page.

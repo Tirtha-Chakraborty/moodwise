@@ -48,9 +48,14 @@ Each entry gives the decision, the rejected alternative, and what breaks if it's
 
 ### Song link format (Q9)
 
-- **Decision:** TBD
-- **Rejected alternative:** TBD
-- **What breaks if wrong:** TBD
+- **Decision:** each song item carries `title`, `artist` and `urls`, a map keyed by service. The only allowed keys are `spotify` and `youtube`. Values are direct track URLs, not search URLs. At least one URL is required, not both. The loader validates at startup that the keys are in the allowed set, every URL is `https`, and the host matches its service (`open.spotify.com` for `spotify`; `youtube.com` or `youtu.be` for `youtube`). Links are link-out only: no embedded players and no music service API in V1. Every link is checked by hand before launch, alongside the mood-tag review.
+
+  ```json
+  { "type": "song", "mood": "nostalgic", "title": "...", "artist": "...",
+    "urls": { "spotify": "https://open.spotify.com/track/...", "youtube": "https://www.youtube.com/watch?v=..." } }
+  ```
+- **Rejected alternative:** search URLs (never break, but land on a results page and may pick the wrong version); a single `url` field (no fallback, and no label for the service); a list of URLs (the template would have to guess the service from the URL); requiring both services (blocks curation when a track is missing on one, and doubles the lookup).
+- **What breaks if wrong:** direct links rot, since tracks get removed or region-locked, so a dead link is a broken result with no error. The second service is the fallback, and the pre-launch hand check catches what is already dead. A typo in a service key would show an unlabeled or missing link, so the key set is validated like the mood taxonomy. A URL pasted into the wrong field would send the visitor to the wrong place, which the host check prevents. Storing `title` and `artist` leaves room for a music API to replace hand-copied links later (Q13).
 
 ## Design
 

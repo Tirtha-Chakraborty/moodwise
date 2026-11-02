@@ -37,10 +37,10 @@ Last updated: 2026-11-02
 2. Draft the TDD **"Key decisions and why"** section, starting with the taxonomy (answers Q1). Each entry: the decision, the rejected alternative, and what breaks if it's wrong.
 3. **Freeze the mood taxonomy:** 6-10 buckets (including a "lost" bucket for uncertain feelings), one-line definition each. The classifier's separate "unclear" output is not a bucket.
 4. Draft the rest of the **TDD (first draft)**: components, request flow, API contract (`POST /api/match`), JSON item schema, failure-modes table (LLM timeout, invalid LLM output, empty bucket, bad input, unclear / injection input).
-5. Write the dataset schema (type: song or quote; song link URL) and curate the first ~20 items.
+5. Write the dataset schema (type: song or quote; for songs, title, artist and a map of Spotify and YouTube URLs) and curate the first ~20 items.
 6. Build the throwaway static page that renders the taxonomy and sample items.
 
-**Blocking questions:** Q9 (Q1 and Q8 were resolved on 2026-11-02; see the Decision Log. Q1 was: what breaks, and in how many places, if a bucket is renamed or added after the dataset is half built).
+**Blocking questions:** none left (Q1, Q8 and Q9 were resolved on 2026-11-02; see the Decision Log. Q1 was: what breaks, and in how many places, if a bucket is renamed or added after the dataset is half built).
 **Exit gate:** explain why the taxonomy had to be frozen before building anything else.
 
 ## Week 2: Design and walking skeleton (~3.5 hrs)
