@@ -15,7 +15,7 @@ Moodwise is a personal project for learning backend engineering in Go. It is bui
 | Area | V1 approach |
 | --- | --- |
 | Language | Go |
-| Mood detection | An LLM API classifies the phrase into one of 6-10 fixed moods, or "unclear" if it describes no feeling |
+| Mood detection | An LLM API classifies the phrase into one of ten fixed moods, or "unclear" if it describes no feeling |
 | Media | Songs (with links out) and quotes |
 | Data | Hand-curated flat JSON dataset, 50-100 items |
 | Cost | A basic spend guard on the public endpoint |

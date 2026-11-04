@@ -21,11 +21,11 @@ Anyone who opens the public URL. V1 doubles as a portfolio piece, so a visitor n
 
 ## What the visitor gets
 
-A small, hand-picked set of songs and quotes (50-100 items), grouped under 6-10 fixed moods, including one for uncertain or unsettled feelings. Similar feelings may return the same picks, and repeat visits draw different items at random from the same small pool.
+A small, hand-picked set of songs and quotes (50-100 items), grouped under ten fixed moods: happy, sad, angry, calm, anxious, nostalgic, lost (uncertain or unsettled feelings), love, heartbreak and energetic. The one-line definition of each is in the [TDD](tdd.md). Similar feelings may return the same picks, and repeat visits draw different items at random from the same small pool.
 
 ## Scope
 
-**In:** single-phrase form; mood classification into 6-10 fixed moods; hand-curated songs and quotes; results page with detected mood, two sections and song links; public URL; feedback form link; bounded cost (see Cost and abuse).
+**In:** single-phrase form; mood classification into ten fixed moods; hand-curated songs and quotes; results page with detected mood, two sections and song links; public URL; feedback form link; bounded cost (see Cost and abuse).
 
 **Out (deliberately):** books and pictures (books V2, pictures V3); embeddings and semantic matching; external data sources; caching; a database; accounts and personalization; full rate limiting (V4).
 
@@ -47,6 +47,7 @@ The public endpoint spends money on every request, so V1 must have restrictions 
 ## Known limitations
 
 - One mood per phrase: mixed feelings are flattened, and similar feelings (e.g. "heartbroken" and "lonely") can return the same results.
+- Love is romantic only: affection for family or friends has no mood of its own.
 - The dataset is small, so results repeat over time.
 - A mood with too few items shows fewer results; it is never padded with items from another mood.
 - Matching is a lookup in my own tagged list, not a search of real-world catalogs.
