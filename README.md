@@ -15,6 +15,7 @@ Moodwise is a personal project for learning backend engineering in Go. It is bui
 | Area | V1 approach |
 | --- | --- |
 | Language | Go |
+| Frontend | Server-rendered pages (Go templates and htmx) with a clean, modern design, in the same codebase |
 | Mood detection | An LLM API classifies the phrase into one of ten fixed moods, or "unclear" if it describes no feeling |
 | Media | Songs (with links out) and quotes |
 | Data | Hand-curated flat JSON dataset, 50-100 items |
@@ -28,11 +29,12 @@ See the [project plan](docs/project_plan.md) for how the versions build on each 
 | Path | What it holds |
 | --- | --- |
 | [docs/project_plan.md](docs/project_plan.md) | Overall plan across versions |
+| [docs/repo_structure.md](docs/repo_structure.md) | Planned repo layout from V1 to V4, and what each version adds |
 | [docs/decision_logs.md](docs/decision_logs.md) | Decisions made, and why |
 | [docs/open_questions.md](docs/open_questions.md) | Items parked for later |
 | [docs/todo.md](docs/todo.md) | Chores and follow-ups, each with a trigger |
 | [docs/nice_to_have_features.md](docs/nice_to_have_features.md) | Optional extras not in any version's scope |
 | [.claude/skills/](.claude/skills/) | Project skills for Claude Code, such as `/create-pr` |
-| [docs/v1/](docs/v1/) | Weekly plan, PRD, TDD and retro for V1 |
+| [docs/v1/](docs/v1/) | Weekly plan, PRD, TDD, TDD outline, design diagrams and retro for V1 |
 
 Each milestone gets its own `docs/v<N>/` folder. [CLAUDE.md](CLAUDE.md) is the working guide for Claude Code on this repo.

@@ -2,7 +2,7 @@
 
 Mood-to-media matcher: the user types a phrase (a feeling, lyric, word) and gets back songs, quotes, and later books and movies that match the mood. A personal project built in Go, in versions V1 to V4, at roughly 3-4 hours a week.
 
-**Current version: V1.** Go, fixed mood buckets classified by an LLM API, songs and quotes only, hand-curated flat JSON dataset, no embeddings, no database.
+**Current version: V1.** Go, fixed mood buckets classified by an LLM API, songs and quotes only, hand-curated flat JSON dataset, server-rendered pages (Go templates and htmx), no embeddings, no database.
 
 No code exists yet, so there are no build or test commands. Add them here with the first code PR.
 
@@ -17,8 +17,11 @@ These load every session:
 Read these when relevant:
 
 - docs/project_plan.md: versions, and what each one deliberately skips. Use it for scope checks.
+- docs/repo_structure.md: planned repo layout from V1 to V4, the rules for adding packages, and what each version adds. Check it before creating or moving a package.
 - docs/open_questions.md: parked items. Check it when a week or milestone starts, and raise anything whose revisit point has arrived.
 - docs/v1/prd.md: V1 requirements.
+- docs/v1/tdd_outline.md: checklist of the TDD sections, what is known and still to decide, and status. Use it while drafting the TDD; delete it once the TDD is final.
+- docs/v1/design/: Mermaid diagrams for the TDD, such as the architecture. Read them with the TDD's architecture section.
 - docs/v1/retro.md: written in the last week of the version. It hands over what the next version needs.
 - docs/todo.md: chores and follow-ups, each with a trigger. Check it at session start and at milestone wrap-up, and raise anything whose trigger has arrived.
 - docs/nice_to_have_features.md: optional extras not in any version's scope. Check it at milestone wrap-up.

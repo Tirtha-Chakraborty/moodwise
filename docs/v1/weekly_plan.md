@@ -1,6 +1,6 @@
 # Moodwise V1: Week-by-Week Plan
 
-Last updated: 2026-11-02
+Last updated: 2026-11-04
 
 ## Overview
 
@@ -25,7 +25,7 @@ Last updated: 2026-11-02
 | 1 | Static page showing the frozen taxonomy and ~20 dataset items, plus PRD and TDD draft | Scope, docs, taxonomy freeze, dataset schema |
 | 2 | **Walking skeleton:** form, handler, `FakeClassifier`, catalog, results page with mood label and song links, running locally | Repo setup, interfaces, loader with validation, `/healthz`, CI, spend-guard design (Q5) |
 | 3 | **Real classification:** a phrase hits the LLM and returns mood-matched items | LLM classifier, enum validation, timeouts, unit tests with a fake client |
-| 4 | **Hardened and reviewed:** bad input, empty buckets, LLM failures show sensible errors; spend guard in place | Handler validation, error shape, spend guard (per Q5), review pass |
+| 4 | **Hardened and reviewed:** bad input, empty buckets, LLM failures show sensible errors; spend guard in place | Handler validation, error shape, spend guard (per Q5), design pass, review pass |
 | 5 | **Trustworthy:** test suite green with `-race`, classifier eval (90% typical, injection set 100%), injection cases checked | Handler and e2e tests, eval set, graceful shutdown |
 | 6 | **Live at a public URL** | Dockerfile, deploy, smoke test, README, retro |
 
@@ -34,18 +34,18 @@ Last updated: 2026-11-02
 **Order matters.** Curating dataset items is the first work that bakes bucket names into the project, so the taxonomy question must be answered first.
 
 1. Draft the **PRD** (1 page): problem, user flow, V1 in/out of scope (from the Project Plan), success criteria. Example: "a phrase returns 3-5 relevant items in under 3s, deployed at a public URL."
-2. Draft the TDD **"Key decisions and why"** section, starting with the taxonomy (answers Q1). Each entry: the decision, the rejected alternative, and what breaks if it's wrong.
+2. Draft the TDD topic by topic, starting with the taxonomy in the data model topic (answers Q1). Each topic holds its design and its decisions: the decision, the rejected alternative, and what breaks if it's wrong.
 3. **Freeze the mood taxonomy:** 6-10 buckets (including a "lost" bucket for uncertain feelings), one-line definition each. The classifier's separate "unclear" output is not a bucket.
 4. Draft the rest of the **TDD (first draft)**: components, request flow, API contract (`POST /api/match`), JSON item schema, failure-modes table (LLM timeout, invalid LLM output, empty bucket, bad input, unclear / injection input).
 5. Write the dataset schema (type: song or quote; for songs, title, artist and a map of Spotify and YouTube URLs) and curate the first ~20 items.
-6. Build the throwaway static page that renders the taxonomy and sample items.
+6. Build the throwaway static page that renders the taxonomy and sample items. It uses a minimal `tokens.css` (palette, type scale, spacing), so the design tokens are tested from the start.
 
 **Blocking questions:** none left (Q1, Q8 and Q9 were resolved on 2026-11-02; see the Decision Log. Q1 was: what breaks, and in how many places, if a bucket is renamed or added after the dataset is half built).
 **Exit gate:** explain why the taxonomy had to be frozen before building anything else.
 
 ## Week 2: Design and walking skeleton (~3.5 hrs)
 
-- Finalize the TDD and log each decision in the Decision Log (taxonomy, LLM provider and model, hosting target, backend-first slicing).
+- Finalize the TDD and log each decision in the Decision Log (taxonomy, LLM provider and model, backend-first slicing). The hosting target is deferred to Week 6 (Q15).
 - Decide the spend-guard mechanism in the TDD.
 - Repo setup: `cmd/` and `internal/` layout, config via env vars, `slog` structured logging, `/healthz`, Makefile, basic CI (`go vet`, `go test`; fakes only, no real API calls).
 - Define the interfaces: `Classifier` (phrase to mood) and `Catalog` (mood to items).
@@ -53,7 +53,7 @@ Last updated: 2026-11-02
 - Bare-bones form and results page (server-rendered `html/template`) wired end to end. The results page shows the detected mood, two sections, song links and the feedback form link.
 - Curate another ~25 items.
 
-**Blocking questions:** Q2, Q5, Q10 (Q2: why `Classifier` is an interface, and what changes in the handler if it calls the LLM SDK directly). Answer Q2 in the TDD "Key decisions" section.
+**Blocking questions:** Q5, Q10. Q2 (why `Classifier` is an interface) was resolved on 2026-11-04; see the Decision Log and the TDD's "Architecture and components" section.
 **Exit gate:** explain why `Classifier` is an interface and not a direct SDK call in the handler.
 
 ## Week 3: Real classification (~4 hrs)
@@ -73,7 +73,7 @@ Last updated: 2026-11-02
 ## Week 4: HTTP hardening, frontend polish, review (~3.5 hrs)
 
 - Handler: input validation (length cap, empty or whitespace input), consistent JSON error shape, correct status codes, server timeouts (`ReadHeaderTimeout` and others). `unclear` shows the friendly message.
-- Polish the form and results page. The feedback form link goes on both pages.
+- **Design pass** (timebox about 1.5 hrs, see the TDD's "Frontend and design system" section): design tokens and reusable components, with the specifics set there. If the week runs long, cut polish items first. The feedback form link goes on both pages.
 - **Cost and abuse guard:** implement the spend guard chosen in Q5. Candidate layers: input length cap, simple per-IP limit, global daily counter, hard spend cap on the provider dashboard. V1 skips scale, but a public endpoint that spends money per request needs a basic safeguard. Full rate limiting stays in V4.
 - Review pass: read your own diff first, then walk it through against a checklist (error handling, secrets, logging, input validation).
 
@@ -91,7 +91,7 @@ Last updated: 2026-11-02
 ## Week 6: Ship (~3 hrs)
 
 - Multi-stage Dockerfile (small image, non-root user).
-- Deploy to a simple host (Fly.io, Render, or Railway). Secrets via the platform, plus a healthcheck.
+- Choose the host first (Q15), then deploy to it (candidates: Fly.io, Render, Railway, Cloud Run). Secrets via the platform, plus a healthcheck.
 - Smoke test the live URL, then trigger one failure on purpose (for example a bad API key) and confirm it fails gracefully.
 - README: what it is, how to run it, architecture sketch, known limitations. Limitations must say it is not injection-proof, that phrases go to a third-party AI provider, and that the app doesn't store them.
 - Update the Decision Log and write the short retro in [retro.md](retro.md) listing what V2 needs from V1's design.
@@ -102,6 +102,7 @@ Last updated: 2026-11-02
 
 - **Dataset curation** is the hidden time sink, so it is spread across Weeks 1-3. Don't leave it to the end.
 - **Curation load:** 10 moods x ~5-10 items. If it runs long, trim a mood rather than thinning all of them.
+- **Week 4 load:** the design pass adds about 1.5 hrs to a week that already holds the spend guard, validation and the review pass. Q10 checks the estimate. If it does not fit, cut polish items first, then move the pass to Week 5.
 - **Taxonomy churn:** changing buckets mid-build invalidates the prompt, the tags, and the tests.
 - **Scope creep:** no embeddings, no third category, no database. Those are V2 and V3.
 - **Docs ballooning in Week 1:** keep the PRD to one page and treat the TDD as a first draft to revise in Week 2.
