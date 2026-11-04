@@ -13,7 +13,7 @@ Under the hood, the project is a study in matching unstructured human language t
 Goal: prove the core loop works, end to end, with minimal moving parts, built in Go.
 
 - User types a phrase into a simple form.
-- Phrase is sent to an LLM via API, which classifies it into one of 6-10 fixed mood buckets (happy, sad, nostalgic, calm, angry, hopeful, etc.), or "unclear" if it describes no feeling.
+- Phrase is sent to an LLM via API, which classifies it into one of ten fixed mood buckets (happy, sad, angry, calm, anxious, nostalgic, lost, love, heartbreak, energetic), or "unclear" if it describes no feeling.
 - A small, hand-curated dataset (50-100 items: songs + quotes only, stored as flat JSON) is filtered by that mood bucket.
 - Results are displayed on a single results page: the detected mood, songs and quotes in separate sections, with songs linking out.
 - Deployed live, even if ugly. Includes a feedback form link and basic cost restrictions.
