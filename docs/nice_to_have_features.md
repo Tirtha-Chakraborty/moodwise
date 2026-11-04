@@ -7,6 +7,7 @@ Unresolved design questions do not belong here; they go in [open_questions.md](o
 | # | Feature | Earliest version | Why it might be worth it, and what it depends on | Added |
 | --- | --- | --- | --- | --- |
 | N1 | Filter results by music service (and later book service), depending on the accounts the visitor has | V4 | Spares visitors links they can't use. Depends on the `urls` map keyed by service in the song schema, which V1 already has. | 2026-11-02 |
+| N2 | Results page takes an accent colour from the detected mood | V1 (design pass) or later | Makes the classification visible and the page feel alive. Depends on the design tokens, and needs a way to keep mood keys in the CSS in step with the taxonomy (a renamed mood would otherwise silently fall back to the default colour). | 2026-11-04 |
 
 ## Rules
 
