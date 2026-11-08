@@ -1,6 +1,6 @@
 # V1 TDD
 
-**Status:** Draft in progress (2026-11-04). The TDD is organised by topic, named as in [tdd_outline.md](tdd_outline.md), which tracks progress. Written so far: the overview (awaiting review), tech stack, architecture and components, the taxonomy and song links in the data model, hosting in config and deployment, and the frontend and design pass decisions. Sections and parts marked TBD are not written yet. Each topic holds its design and its decisions, and each decision gives the decision itself, the rejected alternative, and what breaks if it's wrong. Every decision also has a row in [decision_logs.md](../decision_logs.md). First draft in Week 1, finalized in Week 2.
+**Status:** Draft in progress (2026-11-04). The TDD is organised by topic, named as in [tdd_outline.md](tdd_outline.md), which tracks progress. Written so far: the overview (awaiting review), tech stack, request flow (awaiting review), architecture and components, the taxonomy and song links in the data model, hosting in config and deployment, and the frontend and design pass decisions. Sections and parts marked TBD are not written yet. Each topic holds its design and its decisions, and each decision gives the decision itself, the rejected alternative, and what breaks if it's wrong. Every decision also has a row in [decision_logs.md](../decision_logs.md). First draft in Week 1, finalized in Week 2.
 
 ## Overview, goals and non-goals
 
@@ -73,7 +73,7 @@ V1 is one Go service. It renders pages and answers a JSON API from the same code
 | Component | Job | Must not know about |
 | --- | --- | --- |
 | Server (handlers) | Reads the request, validates the input, calls the `Matcher`, turns its outcome into a view model, renders it as a page or a JSON response, and serves `/healthz` | How matching works, the LLM, the dataset |
-| Middleware | Wraps every request around the handler for cross-cutting concerns: request ID, access logging (never the phrase), panic recovery, the spend guard, security headers and timeouts | Matching, the dataset |
+| Middleware | Wraps every request around the handler for cross-cutting concerns: request ID, access logging (never the phrase), panic recovery, security headers and timeouts. The spend guard is not middleware: it runs after input validation, just before the paid LLM call (see "Request flow") | Matching, the dataset |
 | Templates and web assets | Turn a view model into a page or an htmx fragment; embedded in the binary and parsed once at startup | Domain types, how the outcome was produced |
 | Config | The values that differ per environment (the API key, provider and model, port, LLM timeout, input length cap, spend limit, dataset location), read and validated once at startup and passed in. The final list is in "Config and deployment" | The components that consume the values |
 | `Matcher` (interface) | Phrase in, outcome out. The outcome is a result (detected mood plus songs and quotes), the `unclear` outcome, or a typed failure | HTTP, templates |
@@ -138,9 +138,9 @@ The package layout that follows from this is in [repo_structure.md](../repo_stru
 
 ### Decision: cross-cutting concerns live in middleware
 
-- **Decision:** request ID, access logging, panic recovery, the spend guard, security headers and timeouts are middleware wrapped around the handlers, not code inside them. The order is request ID, then logging, then panic recovery, then the spend guard, then the handler. The spend guard's exact place is settled in "Spend guard". Access logs record method, path, status and duration, never the phrase.
+- **Decision:** request ID, access logging, panic recovery, security headers and timeouts are middleware wrapped around the handlers, not code inside them. The order is request ID, then logging, then panic recovery, then the handler. The spend guard is not in this chain: it runs after input validation, directly before the paid LLM call, so a request rejected as bad input never counts against the budget (see "Request flow"; the mechanism and exact placement are settled in "Spend guard"). Access logs record method, path, status and duration, never the phrase.
 - **Rejected alternative:** each handler doing its own logging, recovery and guarding.
-- **What breaks if wrong:** every new route has to remember every concern, and the route that forgets goes unlogged, unguarded, or crashes the server on a panic. A wrong order fails quietly: a logger outside the request ID middleware loses the ID, and a spend guard placed after the LLM call guards nothing. The cost is that behaviour is spread across wrappers, so the order is written down here.
+- **What breaks if wrong:** every new route has to remember every concern, and the route that forgets goes unlogged, unguarded, or crashes the server on a panic. A wrong order fails quietly: a logger outside the request ID middleware loses the ID. A spend guard placed after the LLM call guards nothing, and one placed before validation spends budget on requests that cost nothing, which is why it is not middleware. The cost is that behaviour is spread across wrappers, so the order is written down here.
 
 ### Decision: config is read once and passed in, and one composition root wires everything
 
@@ -150,7 +150,46 @@ The package layout that follows from this is in [repo_structure.md](../repo_stru
 
 ## Request flow
 
-TBD
+One visitor request, from the browser to the response. The page path and the JSON path (`POST /api/match`) share steps 1 to 6 and differ only in how step 7 renders. The route shapes are in "Routes and API contract".
+
+### Steps
+
+| # | Step | Where | Can fail with |
+| --- | --- | --- | --- |
+| 1 | The browser posts the phrase | Browser to server | Network error (nothing reaches us) |
+| 2 | Request ID, access log, panic recovery, security headers | Middleware | A panic, which becomes a generic error page |
+| 3 | Validate the input: trim, reject empty, over-length or invalid text | Handler | Bad input, answered before anything costs money |
+| 4 | The handler derives a deadline from the request context and calls the `Matcher` | Handler to `Matcher` | None |
+| 5 | The spend guard checks the budget, then the `Classifier` calls the LLM and checks the answer against the taxonomy keys | Guard, classifier, provider adapter | Budget used up, timeout, provider error or safety block, off-list answer |
+| 6 | For a mood, the `Catalog` returns a random sample: up to 3 songs and up to 2 quotes | `Matcher` to `Catalog` | None; a thin or empty bucket is a normal result |
+| 7 | The outcome becomes a view model (page) or a JSON body, and is rendered | Handler, templates | A template error, caught at startup because templates are parsed once |
+
+The outcome of step 5 and 6 is one of three things:
+- **A result:** the detected mood and its items, possibly fewer than 3 and 2, or none in one section.
+- **`unclear`:** the model judged that the phrase has no mood. This is an expected outcome, shown as the friendly "try describing how you feel" message.
+- **A typed failure:** budget used up, timeout, provider error, or invalid output. The handler maps each kind to a status code and a visitor message without looking at provider detail. The exact list is in "Failure modes".
+
+### Where the time goes
+
+The PRD target is a typical phrase in under 3 seconds. Steps 2, 3, 6 and 7 take about a millisecond or less together, so the LLM call in step 5 is almost the whole budget; network and TLS add roughly 100 to 300 ms. These figures are estimates, not measurements, and Week 3 logs the LLM call's duration so the real numbers replace them.
+
+- **One LLM call per request, and no automatic retry.** A timeout usually means the provider is slow or down, so a retry would likely fail again and double the wait. It may also be billed again, which complicates the spend guard. Retries and a circuit breaker belong to V3.
+- **A generous LLM timeout instead.** It is a config value, with a starting guess of 6 seconds, to be set in "Classifier design" once the real latencies are known. The server write timeout is set above it with margin, so the server never cuts off a call that is still allowed to finish.
+- **The deadline comes from the request context.** If the visitor closes the tab, the context is cancelled and the LLM call stops, so we do not wait for, or pay more for, an answer nobody will see.
+- **A failed request shows a "Try again" button.** The visitor decides whether to retry, and the retry goes through the spend guard like any other request.
+- **The 3 second criterion describes the typical case.** The timeout is the worst-case limit. The PRD does not change.
+
+### Decision: outcomes versus errors, a generous timeout and no retry
+
+- **Decision:** `unclear` and a thin or empty bucket are outcomes: expected results with a friendly message. Timeout, provider error and invalid output are typed errors. The LLM call is made once per request with a generous, configurable timeout, derived from the request context, and a failed request offers a "Try again" button instead of retrying automatically. The PRD's 3 second criterion stays, as a typical-case target.
+- **Rejected alternative:** an automatic retry after a timeout, with the PRD loosened to about 10 seconds; treating `unclear` as an error.
+- **What breaks if wrong:** if `unclear` were an error, a normal answer would take the failure path, be logged as a fault and inflate error counts. If the timeout is too short, slow but healthy answers become errors. If it is too long, a stuck provider holds connections, and the visitor waits with no feedback. Without the context deadline, closed tabs still cost money. The cost of no retry is that a transient provider blip reaches the visitor as an error, which the "Try again" button softens.
+
+### Decision: the spend guard runs after validation, just before the paid call
+
+- **Decision:** the spend guard is not middleware. It runs after the handler has validated the input, directly before the LLM call, so a request rejected as bad input never counts against the budget. This supersedes the middleware order in the 2026-11-04 decision log row. The mechanism, the layers and the exact placement (around the `Matcher` or the `Classifier`) are settled in "Spend guard" (Q5).
+- **Rejected alternative:** the guard in the middleware chain, before the handler.
+- **What breaks if wrong:** a guard before validation counts requests that cost nothing, so a flood of empty submissions could use up the daily budget and lock out real visitors. A guard that sits after the LLM call guards nothing. The cost of the chosen placement is that the handler must handle one more typed failure (budget used up), and that a per-IP limit needs the client IP passed down from the HTTP layer.
 
 ## Routes and API contract
 
