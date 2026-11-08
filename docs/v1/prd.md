@@ -1,6 +1,6 @@
 # Moodwise V1: Product Requirements
 
-Status: Draft 3 · 2026-11-02
+Status: Draft 4 · 2026-11-04
 
 ## Problem
 
@@ -25,7 +25,7 @@ A small, hand-picked set of songs and quotes (50-100 items), grouped under ten f
 
 ## Scope
 
-**In:** single-phrase form; mood classification into ten fixed moods; hand-curated songs and quotes; results page with detected mood, two sections and song links; public URL; feedback form link; bounded cost (see Cost and abuse).
+**In:** single-phrase form; mood classification into ten fixed moods; hand-curated songs and quotes; results page with detected mood, two sections and song links; public URL; a clean, contemporary look from one timeboxed design pass; feedback form link; bounded cost (see Cost and abuse).
 
 **Out (deliberately):** books and pictures (books V2, pictures V3); embeddings and semantic matching; external data sources; caching; a database; accounts and personalization; full rate limiting (V4).
 

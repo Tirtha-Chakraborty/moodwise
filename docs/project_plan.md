@@ -16,7 +16,7 @@ Goal: prove the core loop works, end to end, with minimal moving parts, built in
 - Phrase is sent to an LLM via API, which classifies it into one of ten fixed mood buckets (happy, sad, angry, calm, anxious, nostalgic, lost, love, heartbreak, energetic), or "unclear" if it describes no feeling.
 - A small, hand-curated dataset (50-100 items: songs + quotes only, stored as flat JSON) is filtered by that mood bucket.
 - Results are displayed on a single results page: the detected mood, songs and quotes in separate sections, with songs linking out.
-- Deployed live, even if ugly. Includes a feedback form link and basic cost restrictions.
+- Deployed live, with a clean, modern look from one small timeboxed design pass. Includes a feedback form link and basic cost restrictions.
 
 **What it teaches:** basic API design, calling an external LLM API, simple filtering logic, shipping something real.
 
@@ -56,7 +56,7 @@ Goal: turn a working backend into a product people actually want to return to.
 - Lightweight auth, so users can save past results or build a "mood history."
 - Personalization: recommendations improve over time based on a user's past inputs (even something simple like weighting previously liked categories).
 - Rate limiting on your own API to handle real public traffic responsibly.
-- Performance pass under concurrent load; polish the frontend into something genuinely shareable.
+- Performance pass under concurrent load; polish the frontend into something genuinely shareable (and decide then whether it stays server-rendered or splits into a separate app, Q16).
 - Optional: let users submit their own phrase -> result pairs to grow the dataset organically.
 
 **What it teaches:** auth, lightweight personalization/recommendation logic, handling real public traffic, product thinking beyond pure backend.
