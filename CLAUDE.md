@@ -80,6 +80,7 @@ Project skills live in `.claude/skills/<name>/SKILL.md` and are committed to the
 
 - `/create-pr`: checks the docs hygiene and the code, then pushes the branch and opens the PR.
 - `/recap-learning`: writes a copy-pastable recap of the session's questions, answers, corrections and learning for the user's private notes. It outputs text only.
+- `/explain-topic`: explains any topic (a TDD section, code, a concept, background) in simple words, using one easy example that runs through the answer so each point connects to the whole. It outputs text only.
 
 When you add a skill, list it here in the same PR.
 
