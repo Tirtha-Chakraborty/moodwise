@@ -33,7 +33,7 @@ moodwise/
 │   ├── auth/              [V4]
 │   ├── personalize/       [V4]
 │   └── server/            [V1] routes, handlers, template wiring
-│       └── middleware/    [V1] request id, logging, spend guard; [V4] rate limit, auth
+│       └── middleware/    [V1] request id, logging, recovery, headers; [V4] rate limit, auth (the V1 spend guard is not middleware, its package is set in the TDD's "Spend guard")
 ├── content/               [V1] taxonomy.json, items.json, embed.go (hand-curated files only)
 ├── web/                   [V1] templates/, static/ (CSS tokens, vendored htmx, JS), embed.go; [V4] may become a separate frontend/ app (Q16)
 ├── e2e/                   [V1] black-box tests against a fake LLM server; [V3] fake sources and database

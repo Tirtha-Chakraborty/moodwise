@@ -53,7 +53,7 @@ flowchart TB
     end
 
     subgraph Service["Go service (one binary)"]
-        MW["Middleware<br/>request ID, access logging, panic recovery,<br/>spend guard, security headers, timeouts"]
+        MW["Middleware<br/>request ID, access logging, panic recovery,<br/>security headers, timeouts"]
 
         subgraph Server["Server"]
             PageH["Page handler<br/>form post, htmx"]
@@ -68,6 +68,7 @@ flowchart TB
         Adapter["Provider adapter (Gemini)<br/>the only code that imports an LLM SDK"]
         Catalog{{"Catalog (interface)<br/>V1: in-memory, items indexed by mood"}}
         Rand["Random source<br/>injected"]
+        Guard["Spend guard<br/>after validation, just before the LLM call<br/>(placement and mechanism: Q5)"]
     end
 
     FakeC["Fake classifier<br/>tests only"]
@@ -83,7 +84,8 @@ flowchart TB
     PageH -->|"outcome becomes"| VM
     VM --> Tpl
 
-    Matcher --> Classifier
+    Matcher --> Guard
+    Guard --> Classifier
     Matcher --> Catalog
     Classifier --> Adapter
     Adapter --> Gemini
@@ -106,6 +108,7 @@ flowchart TB
 
 What the diagram shows:
 - **The handler knows one thing downstream:** the `Matcher`. It never touches the `Classifier` or the `Catalog`, which is the decision recorded in the TDD.
+- **The spend guard is not middleware.** It sits after validation and just before the paid call, so rejected input never counts against the budget. Whether it wraps the `Matcher` or the `Classifier` is settled with Q5.
 - **Only the provider adapter reaches the outside world,** and only it imports an LLM SDK.
 - **The taxonomy is loaded once** by the loader and handed to the three consumers: the classifier, the templates, and the loader itself (which checks every dataset tag against it).
 - **The composition root is the only place that knows the concrete types.** It reads the config, creates the components and wires them together.

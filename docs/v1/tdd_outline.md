@@ -13,8 +13,8 @@ The TDD is organised by these topics, using the same names as headings and no nu
 | 1 | **Overview, goals, non-goals** | PRD: problem, audience, scope, success criteria, what V1 skips | Nothing. Short summary that links to the PRD | Drafted, awaiting your review |
 | 2 | **Tech stack** | Go, an LLM API for classification, a flat JSON dataset, no database, no embeddings, server-rendered `html/template`, `slog`, config via env vars | ~~LLM provider and model~~ (done: Gemini Flash-Lite, OpenAI fallback), ~~hosting target~~ (deferred to Week 6, Q15; portability requirements are in the TDD), ~~Go version, router, test and lint tools~~ (done: Go 1.27, stdlib `ServeMux`, stdlib `testing`, `go vet` and `gofmt`), ~~frontend approach and long-term stack~~ (done: modular monolith, server-rendered with htmx, JSON API alongside, V3 and V4 libraries chosen at their versions) | Done |
 | 3 | **Architecture and components** | Components named in the plan: handler, `Classifier`, `Catalog`, dataset loader, taxonomy file, templates | Component boundaries and dependency direction; the V2-V4 extension seams (what each later version swaps or wraps, per the project plan) shown on the diagrams; Q2: why `Classifier` is an interface (draw the handler both ways). Mermaid diagrams (high level and close-ups) live in `docs/v1/design/` and are linked here | Done: every component has been reviewed, and the decisions on `Matcher`, `Classifier` (Q2 resolved), taxonomy, `Catalog`, templates, middleware, and config with the composition root are made. The outcome and error types are left to request flow, failure modes and classifier design |
-| 4 | **Request flow** | Happy path and `unclear` path from the PRD | Step-by-step flow, where time goes (3 s budget), where each step can fail | Not started |
-| 5 | **Routes and API contract** | `POST /api/match`, `/healthz`, consistent JSON error shape | Decided: pages and a JSON API both exist, and match logic returns data that both handlers only render. Still open: whether the form posts to an HTML route (a natural fit for htmx) beside `POST /api/match`. Request and response shapes, status codes | Not started |
+| 4 | **Request flow** | Happy path and `unclear` path from the PRD | ~~Step-by-step flow, where time goes (3 s budget), where each step can fail~~ (done). Still to set: the LLM timeout number (Classifier design, after Week 3 measurements) | Done, awaiting your review |
+| 5 | **Routes and API contract** | `POST /api/match`, `/healthz`, consistent JSON error shape | Decided: two entry points (`POST /match` for HTML, `POST /api/match` for JSON), phrase by POST only, real status codes on both with htmx swapping error responses, JSON shapes, error view model. Still to settle in Failure modes: the final error codes, messages and which kinds offer Try again; quote fields (Data model) | Done, awaiting your review |
 | 6 | **Data model** | Taxonomy file: key, label, definition (done). Song items: `title`, `artist`, `urls` map (done) | Quote schema, dataset file location and format (embedded or read at startup), full loader validation rules, dedup rules, an ID per item | Partly done (taxonomy, song links) |
 | 7 | **Classifier design** | Output is a mood key or `unclear`. Prompt built from the taxonomy. Output validated against the enum. Timeout via `context`. Key from env, never logged | Prompt structure, structured-output approach, timeout value, retry or no retry, tie-breaker for two-mood phrases (see todo.md), fallback on invalid output | Not started |
 | 8 | **Catalog and selection** | Random sample, up to 3 songs and 2 quotes, injected random source, thin buckets show fewer items | Whether the dataset is indexed by mood at startup, how a bucket with 0 songs but some quotes behaves | Not started |
@@ -36,12 +36,13 @@ Each topic depends on the ones before it:
 
 1. Tech stack (2), done
 2. Architecture and request flow (3, 4); Q2 is answered here
-3. Repo layout (16), once the components are known; then data model (6) and catalog (8); the quote schema blocks the dataset work
+3. Data model (6) and catalog (8); the quote schema blocks the dataset work
 4. Classifier (7)
 5. API, validation and failure modes (5, 9, 11), then the frontend and design system (19)
 6. Spend guard (10), then security (12) and observability (13)
 7. Testing (14) and deployment (15)
-8. Work breakdown (17), then risks (18)
+8. Repo layout (16), moved here on 2026-11-08 so the layout is organised around what the implementation topics decided; it must be final before Week 2's repo setup
+9. Work breakdown (17), then risks (18)
 
 For each topic: discuss, state the decision in your own words, write the TDD entry, add the Decision Log row, update the Status column, then move on.
 
