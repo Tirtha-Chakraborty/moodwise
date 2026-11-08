@@ -1,6 +1,6 @@
 # V1 TDD
 
-**Status:** Draft in progress (2026-11-04). The TDD is organised by topic, named as in [tdd_outline.md](tdd_outline.md), which tracks progress. Written so far: the overview (awaiting review), tech stack, request flow (awaiting review), architecture and components, the taxonomy and song links in the data model, hosting in config and deployment, and the frontend and design pass decisions. Sections and parts marked TBD are not written yet. Each topic holds its design and its decisions, and each decision gives the decision itself, the rejected alternative, and what breaks if it's wrong. Every decision also has a row in [decision_logs.md](../decision_logs.md). First draft in Week 1, finalized in Week 2.
+**Status:** Draft in progress (2026-11-04). The TDD is organised by topic, named as in [tdd_outline.md](tdd_outline.md), which tracks progress. Written so far: the overview (awaiting review), tech stack, request flow and routes and API contract (both awaiting review), architecture and components, the taxonomy and song links in the data model, hosting in config and deployment, and the frontend and design pass decisions. Sections and parts marked TBD are not written yet. Each topic holds its design and its decisions, and each decision gives the decision itself, the rejected alternative, and what breaks if it's wrong. Every decision also has a row in [decision_logs.md](../decision_logs.md). First draft in Week 1, finalized in Week 2.
 
 ## Overview, goals and non-goals
 
@@ -193,7 +193,61 @@ The PRD target is a typical phrase in under 3 seconds. Steps 2, 3, 6 and 7 take 
 
 ## Routes and API contract
 
-TBD
+### Routes
+
+| Route | Used by | Returns |
+| --- | --- | --- |
+| `GET /` | The browser, to open the home page | The home page: the form and the feedback link |
+| `POST /match` | The home page form | The results page, or only the results fragment when htmx sent the request |
+| `POST /api/match` | Other programs | JSON |
+| `GET /healthz` | The hosting platform's health check | `200 ok`. What it checks is decided in "Observability" |
+| `GET /static/...` | The browser | Embedded CSS, htmx and JS |
+
+`ServeMux` method patterns answer a wrong method with 405 and an unknown path with 404, so those need no handler code. htmx marks its requests with the `HX-Request` header. `POST /match` answers a fragment for those and a full page otherwise, so the form also works with JavaScript off. It sets `Vary: HX-Request` so that no cache serves a fragment where a page was expected.
+
+`POST /match` and `POST /api/match` both call the `Matcher` directly and differ only in the last rendering step. Neither calls the other.
+
+### The JSON API (`POST /api/match`)
+
+- **Request:** `Content-Type: application/json` and a body of `{"phrase": "..."}`. Other content types get 415. The body is read through a hard byte limit, and unknown fields are rejected.
+- **A result (200):** `{"outcome": "matched", "mood": {"key": "...", "label": "..."}, "songs": [...], "quotes": [...]}`. A thin bucket gives shorter arrays, and an empty section is an empty array, never missing. A song is `{"title", "artist", "urls"}`; the quote fields follow the quote schema (see "Data model").
+- **`unclear` (200):** `{"outcome": "unclear", "message": "..."}`.
+- **An error:** `{"error": {"code": "...", "message": "..."}}`. The `code` is a stable string for programs and the `message` is safe to show to a person. It never contains provider detail.
+
+### Status codes
+
+Both routes use the same codes, from one shared mapping of outcome and typed failure to status.
+
+| What happened | Status | Flow step |
+| --- | --- | --- |
+| A result, a thin or empty bucket, or `unclear` | 200 | 5 and 6 |
+| Empty, over-length or invalid input, or a malformed JSON body | 400 | 3 |
+| Body larger than the byte limit | 413 | When the body is read |
+| Unsupported content type (API only) | 415 | When the body is read |
+| Spend guard tripped | 429 | 5 |
+| A panic or another unexpected failure | 500 | Any |
+| Provider error or invalid LLM output | 502 | 5 |
+| LLM timeout | 504 | 5 |
+
+"Failure modes" finalises this list, the error codes and the visitor messages.
+
+### The error view model
+
+The page never sees provider detail. The adapter maps provider failures to a few typed failures, and the handler turns each into an error view model of three fields: the **kind**, the **message** to show, and whether to offer **Try again**. Templates switch their layout on the kind and show the message, and nothing else. The raw cause goes to the log only, once, with the request ID, written by the handler. Which kinds offer "Try again" is set in "Failure modes" (for example, offering it after the daily budget is used up would mislead).
+
+On a 400, the page route re-renders the form with the visitor's text kept in the box and the message above it. `html/template` escapes the echoed text.
+
+### Decision: two entry points that both call the `Matcher`, and the phrase travels by POST
+
+- **Decision:** the browser form posts to `POST /match` and gets HTML. Other programs use `POST /api/match` and get JSON. Both call the `Matcher` directly and only differ in rendering. The phrase is always sent in a POST body and never in a URL.
+- **Rejected alternative:** one route, `POST /api/match`, with browser JavaScript turning the JSON into HTML (a single-page-app pattern, so the form would not work without JavaScript); the page route calling the JSON API over HTTP; a GET form with the phrase in the query string.
+- **What breaks if wrong:** with one JSON route, the server-rendered decision is undone and the page needs more client code. A page route that calls the API adds a network hop and runs the middleware twice per visitor request. A GET puts the phrase in browser history, proxy logs and the `Referer` header sent to the music sites, so every log line would need the query string stripped by hand, and one missed log call would store phrases. The cost of POST is that refreshing the results page re-submits the form and makes another LLM call, which the spend guard covers. The cost of two routes is two entry points to keep in step, which stays small because both only call the `Matcher` and render.
+
+### Decision: real status codes on both routes, and htmx swaps error responses
+
+- **Decision:** the page route returns the same real status codes as the API (400, 429, 502, 504 and so on), from one shared mapping. Errors are shown through the error view model. htmx is configured to swap 4xx and 5xx responses into the page, because by default it drops them, and a test covers that.
+- **Rejected alternative:** the page route returning 200 with an error fragment, which needs no htmx setting.
+- **What breaks if wrong:** if htmx is not configured, an error response is dropped and the visitor sees nothing, which breaks the PRD's "never a blank page". With 200 for failures, the access log's status field and any platform or uptime monitor that charts 5xx would show failures as successes, and the page route would need a separate status rule from the API. The handler's own failure log would still be complete. The cost of the chosen design is one htmx setting and its test.
 
 ## Data model
 
