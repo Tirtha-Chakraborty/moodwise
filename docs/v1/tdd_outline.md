@@ -36,12 +36,13 @@ Each topic depends on the ones before it:
 
 1. Tech stack (2), done
 2. Architecture and request flow (3, 4); Q2 is answered here
-3. Repo layout (16), once the components are known; then data model (6) and catalog (8); the quote schema blocks the dataset work
+3. Data model (6) and catalog (8); the quote schema blocks the dataset work
 4. Classifier (7)
 5. API, validation and failure modes (5, 9, 11), then the frontend and design system (19)
 6. Spend guard (10), then security (12) and observability (13)
 7. Testing (14) and deployment (15)
-8. Work breakdown (17), then risks (18)
+8. Repo layout (16), moved here on 2026-11-08 so the layout is organised around what the implementation topics decided; it must be final before Week 2's repo setup
+9. Work breakdown (17), then risks (18)
 
 For each topic: discuss, state the decision in your own words, write the TDD entry, add the Decision Log row, update the Status column, then move on.
 
