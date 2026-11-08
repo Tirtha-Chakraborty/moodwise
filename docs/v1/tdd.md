@@ -1,6 +1,6 @@
 # V1 TDD
 
-**Status:** Draft in progress (2026-11-04). The TDD is organised by topic, named as in [tdd_outline.md](tdd_outline.md), which tracks progress. Written so far: the overview (awaiting review), tech stack, request flow and routes and API contract (both awaiting review), architecture and components, the taxonomy and song links in the data model, hosting in config and deployment, and the frontend and design pass decisions. Sections and parts marked TBD are not written yet. Each topic holds its design and its decisions, and each decision gives the decision itself, the rejected alternative, and what breaks if it's wrong. Every decision also has a row in [decision_logs.md](../decision_logs.md). First draft in Week 1, finalized in Week 2.
+**Status:** Draft in progress (2026-11-04). The TDD is organised by topic, named as in [tdd_outline.md](tdd_outline.md), which tracks progress. Written so far: the overview (awaiting review), tech stack, request flow and routes and API contract (both awaiting review), architecture and components, the data model and the catalog and selection (both awaiting review), hosting in config and deployment, and the frontend and design pass decisions. Sections and parts marked TBD are not written yet. Each topic holds its design and its decisions, and each decision gives the decision itself, the rejected alternative, and what breaks if it's wrong. Every decision also has a row in [decision_logs.md](../decision_logs.md). First draft in Week 1, finalized in Week 2.
 
 ## Overview, goals and non-goals
 
@@ -28,7 +28,7 @@ Moodwise V1 takes a phrase, classifies its mood with an LLM, and returns songs a
 | API | A JSON API next to the pages (`POST /api/match`) | Keeps the backend reusable by another frontend later. Route details are in "Routes and API contract". |
 | Logging | `log/slog`, structured | Fields are decided in "Observability". |
 | Configuration | Environment variables, read and validated once at startup | A missing or invalid value stops the app from booting. |
-| Taxonomy and dataset | JSON files, validated by the loader at startup | The taxonomy is embedded in the binary; the dataset's location is decided in "Data model". |
+| Taxonomy and dataset | JSON files, validated by the loader at startup | Both files live in `content/` and are embedded in the binary; see "Data model". |
 | LLM | Gemini Flash-Lite, OpenAI as fallback | See "Decision: LLM provider and model" below. |
 | Tests | Standard library `testing`, table-driven, `net/http/httptest`, `-race` from Week 5 | No assertion library. |
 | Static checks | `go vet` and a `gofmt` check, both in CI | No linter suite in V1. |
@@ -75,7 +75,7 @@ V1 is one Go service. It renders pages and answers a JSON API from the same code
 | Server (handlers) | Reads the request, validates the input, calls the `Matcher`, turns its outcome into a view model, renders it as a page or a JSON response, and serves `/healthz` | How matching works, the LLM, the dataset |
 | Middleware | Wraps every request around the handler for cross-cutting concerns: request ID, access logging (never the phrase), panic recovery, security headers and timeouts. The spend guard is not middleware: it runs after input validation, just before the paid LLM call (see "Request flow") | Matching, the dataset |
 | Templates and web assets | Turn a view model into a page or an htmx fragment; embedded in the binary and parsed once at startup | Domain types, how the outcome was produced |
-| Config | The values that differ per environment (the API key, provider and model, port, LLM timeout, input length cap, spend limit, dataset location), read and validated once at startup and passed in. The final list is in "Config and deployment" | The components that consume the values |
+| Config | The values that differ per environment (the API key, provider and model, port, LLM timeout, input length cap, spend limit), read and validated once at startup and passed in. The final list is in "Config and deployment" | The components that consume the values |
 | `Matcher` (interface) | Phrase in, outcome out. The outcome is a result (detected mood plus songs and quotes), the `unclear` outcome, or a typed failure | HTTP, templates |
 | Bucket matcher (the V1 `Matcher`) | Asks the `Classifier` for a mood, then asks the catalog for items in that mood | HTTP, which provider |
 | `Classifier` (interface) | Phrase in, a mood key or `unclear` out, or a typed failure | Which provider, HTTP |
@@ -253,7 +253,7 @@ On a 400, the page route re-renders the form with the visitor's text kept in the
 
 ### Decision: mood taxonomy (Q1, Q8)
 
-- **Decision:** ten fixed moods, defined once in a single embedded JSON file (path settled with the Week 2 layout). Each mood has a `key` (lowercase ASCII slug, unique, stable, and never `unclear`), a `label` for display, and a one-line `definition`. Code contains no mood literals; a mood name appears only in the taxonomy file, the dataset tags, and the tests and eval. The loader checks every dataset tag against the taxonomy at startup, so a bad tag stops the app from booting. The classifier prompt and the enum validation are built from the taxonomy keys and definitions, and templates show the `label`. `unclear` is not a mood: it is a code constant for the classifier's no-mood output.
+- **Decision:** ten fixed moods, defined once in a single embedded JSON file (`content/taxonomy.json`). Each mood has a `key` (lowercase ASCII slug, unique, stable, and never `unclear`), a `label` for display, and a one-line `definition`. Code contains no mood literals; a mood name appears only in the taxonomy file, the dataset tags, and the tests and eval. The loader checks every dataset tag against the taxonomy at startup, so a bad tag stops the app from booting. The classifier prompt and the enum validation are built from the taxonomy keys and definitions, and templates show the `label`. `unclear` is not a mood: it is a code constant for the classifier's no-mood output.
 
   | key | definition |
   | --- | --- |
@@ -277,13 +277,44 @@ On a 400, the page route re-renders the form with the visitor's text kept in the
 - **Decision:** each song item carries `title`, `artist` and `urls`, a map keyed by service. The only allowed keys are `spotify` and `youtube`. Values are direct track URLs, not search URLs. At least one URL is required, not both. The loader validates at startup that the keys are in the allowed set, every URL is `https`, and the host matches its service (`open.spotify.com` for `spotify`; `youtube.com` or `youtu.be` for `youtube`). Links are link-out only: no embedded players and no music service API in V1. Every link is checked by hand before launch, alongside the mood-tag review.
 
   ```json
-  { "type": "song", "mood": "nostalgic", "title": "...", "artist": "...",
+  { "id": "s-014", "type": "song", "mood": "nostalgic", "title": "...", "artist": "...",
     "urls": { "spotify": "https://open.spotify.com/track/...", "youtube": "https://www.youtube.com/watch?v=..." } }
   ```
 - **Rejected alternative:** search URLs (never break, but land on a results page and may pick the wrong version); a single `url` field (no fallback, and no label for the service); a list of URLs (the template would have to guess the service from the URL); requiring both services (blocks curation when a track is missing on one, and doubles the lookup).
 - **What breaks if wrong:** direct links rot, since tracks get removed or region-locked, so a dead link is a broken result with no error. The second service is the fallback, and the pre-launch hand check catches what is already dead. A typo in a service key would show an unlabeled or missing link, so the key set is validated like the mood taxonomy. A URL pasted into the wrong field would send the visitor to the wrong place, which the host check prevents. Storing `title` and `artist` leaves room for a music API to replace hand-copied links later (Q13).
 
-The quote schema, the dataset file location and the full loader rules are TBD.
+### Decision: the content files are embedded from `content/`
+
+- **Decision:** `taxonomy.json` and `items.json` live in `content/` and are embedded in the binary with `go:embed`. The embed declaration sits in a small Go file in `content/` (`embed.go`), because `go:embed` can only reach files in its own folder or below, so a file at the repo root would need a root-level Go package. The startup loader receives the bytes. There is no dataset path in config.
+- **Rejected alternative:** reading the file from a path set by an environment variable; `items.json` at the repo root; fetching the content from somewhere at startup.
+- **What breaks if wrong:** an embedded file means every content edit needs a rebuild and a redeploy. That is acceptable for a file edited by one person, and it keeps content and code versions in step. A file on disk can be missing, stale or different between environments, and it adds a config value that can be wrong. A root-level file mixes content with code. If curation ever needs faster edits than a deploy, that is a V2 live source, not a reason to read from disk now.
+
+### Item schema: ids, one mood, and the quote
+
+`items.json` is one flat JSON array. Every item has an `id`, a `type` (`song` or `quote`) and exactly one `mood`, plus the fields of its type. A song carries `title`, `artist` and `urls` (see "Decision: song link format"). A quote carries `text`, `author` and an optional `source`, such as a book or a speech.
+
+```json
+{ "id": "q-007", "type": "quote", "mood": "calm", "text": "...", "author": "...", "source": "..." }
+```
+
+### Decision: item ids, one mood per item, and the quote schema
+
+- **Decision:** each item has an explicit, stable `id`: `s-` for a song or `q-` for a quote, then a number (for example `s-014`). The prefix must match the `type`, and an id is never reused, even after the item is deleted. Each item has exactly one `mood`. A quote needs `text` and `author`; `source` is optional. A quote with no known or disputed author is left out of V1. Song lyrics are not used as quotes. A maximum length for quote text is set in the design pass (see `docs/todo.md`). The loader rejects duplicates anywhere in the file: the same `id`, the same song link, the same (title, artist), or the same (quote text, author). Every quote's author is checked by hand before launch, alongside the mood tags and the song links.
+- **Rejected alternative:** the array position as the id; an id derived from the title; a `moods` list per item, or the same track entered under two moods; an optional author on quotes; lyrics as quotes.
+- **What breaks if wrong:** a song under two moods can come back for two quite different feelings ("I broke up" and "I failed my exam"), and the visitor reads that as a bug. Two moods per item also double the hand review of tags and blur the eval. An id based on position or title changes when the file is reordered or a typo is fixed, and V2 will attach precomputed data to each item by id, so a reused or changed id attaches the wrong data. A misattributed quote shown as fact breaks the "honest dataset" promise, and lyrics raise copyright questions. The cost is that ids are assigned by hand, which the loader checks.
+
+### Decision: the loader reports every error and stops boot
+
+- **Decision:** the startup loader decodes the files into private file-shape structs (unknown JSON fields are rejected, so a typo such as `mod` is an error), validates them, and only then builds the domain types (`Song` and `Quote`) and the catalog. Nothing outside the catalog package sees the file shape. The rules:
+  - every string is trimmed, and a required field is not empty;
+  - `type` is `song` or `quote`, the `id` prefix matches it, and a song has no quote fields and a quote has no song fields;
+  - `mood` is a taxonomy key (see "Decision: mood taxonomy");
+  - song `urls` follow the song link rules;
+  - no duplicates (see the item decision above). Song links are compared in a normalised form: the host in lowercase, no trailing slash, and `youtu.be/ID` and `youtube.com/watch?v=ID` count as the same video.
+
+  The loader collects all errors and reports them together, each with the item id, and then boot stops. A mood with few or no items is not an error. The loader logs a warning for each mood with fewer than 3 songs or fewer than 2 quotes, with the counts, so a gap is visible without blocking early curation. A test loads the real `content/` files in CI, and from Week 5 a stricter test asserts that every mood can fill a full result (3 songs and 2 quotes). That test stays in CI, so a later change that empties or thins a bucket fails before it merges.
+- **Rejected alternative:** stopping at the first error; skipping a bad item with a warning; failing boot on a thin bucket; letting the file shape double as the domain type.
+- **What breaks if wrong:** stopping at the first error makes curating 50+ items a loop of one fix and one restart each. Skipping a bad item loses it silently, the same failure the taxonomy check exists to prevent. Failing boot on a thin bucket would stop the app from starting during Weeks 1 to 3, while the dataset is still small. Warnings alone could let a thin bucket ship, which is why the strict test exists, and it stays in CI so a bucket emptied by a later edit is caught too. If the file shape leaks into the rest of the code, a change to the file format touches handlers and templates.
 
 ## Classifier design
 
@@ -291,7 +322,27 @@ TBD. The provider and model are decided in "Tech stack".
 
 ## Catalog and selection
 
-TBD
+At request time the `Catalog` is the holder of the curated items. The loader builds it once at startup; after that it only answers one question: given a mood key, which songs and quotes should this visitor see?
+
+### How it works
+
+- The catalog holds two lookups, mood key to songs and mood key to quotes, built once at startup and never changed afterwards. Concurrent requests only read them, so no locks are needed.
+- The `Matcher` calls `Catalog` with a mood key and the most songs and quotes it wants. The bucket matcher asks for 3 and 2. Those numbers are product constants in one named place in the matcher package, not environment config, and the catalog does not know them.
+- The catalog returns a random sample of each, in random order. If a bucket holds fewer items than requested, it returns all of them, shuffled. It never pads from another mood.
+- The sample never touches the shared lists. It picks distinct positions and builds a new list for the caller.
+- The random source is a function passed in at construction. Production passes the top-level `rand.IntN` from `math/rand/v2`; tests pass a scripted one.
+
+### Decision: an immutable index, a non-mutating sample and an injected random function
+
+- **Decision:** the index is built once and is read-only. Sampling picks distinct positions (a partial shuffle of a copy of the index positions) and never reorders the shared slices. Randomness comes from an injected function of the shape "a number below n", not from a `*rand.Rand` shared across requests and not from a global. Production passes the top-level `rand.IntN`, which is built to be called from many goroutines at once, and tests pass a scripted function so the result is exact.
+- **Rejected alternative:** shuffling the shared slice in place; one shared `*rand.Rand`; a global random source called inside the catalog; a lock around the index.
+- **What breaks if wrong:** two requests shuffling and reading the same slice is a data race, which can return the same song twice or a missing one and shows up only under load; `go test -race` is there to catch it. A shared `*rand.Rand` keeps internal state that is not safe to use concurrently. A global source cannot be scripted, so tests could only check "some items came back" and could not check the cases that matter: a bucket smaller than the request, no item picked twice in one draw, and an empty bucket. The scripted test checks the selection logic, not the quality of the randomness, which is Go's job. The cost is one function parameter, and the claim that the top-level functions are concurrency safe is checked against the Go docs when the catalog is built (see `docs/todo.md`).
+
+### Decision: an empty bucket is a result, an unknown mood is an error
+
+- **Decision:** a bucket with fewer items than requested, or with no songs or no quotes, is a normal result. The page shows the sections that have items and hides an empty one without an apology. If both sections are empty, the result still carries the mood, the view model shows a friendly "no picks for this mood yet" message, the handler logs a warning as a curation gap, and the status is 200 with empty arrays in the JSON. A mood key that is not in the taxonomy is a typed error from the catalog: it means a wiring bug, because the classifier already checks its answer against the taxonomy. It maps to the unexpected-failure 500, and the visitor sees the generic error message.
+- **Rejected alternative:** padding a thin bucket with items from another mood; treating an empty bucket as an error; treating an unknown mood key as an empty bucket.
+- **What breaks if wrong:** padding breaks the promise that results match the mood. An empty bucket treated as an error shows a failure page for a curation gap. An unknown key treated as empty hides a real bug behind a friendly message, and the fault never reaches the logs as a fault. The cost is two distinct paths that both need tests.
 
 ## Input validation
 

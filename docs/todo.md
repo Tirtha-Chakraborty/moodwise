@@ -21,3 +21,7 @@ When an item is done, delete the row. Anything that is a real choice between alt
 | 2026-11-04 | Choose vector storage and cache, and log decision rows. Likely: precomputed embeddings with in-memory cosine similarity, and an in-process TTL cache behind an interface | V2 planning |
 | 2026-11-04 | Choose the Postgres access and migration tools (likely `pgx`, `sqlc`, `goose`, `pgvector`), the metrics library and the retry and circuit-breaker approach, and log decision rows. Also recheck the server write timeout against streamed (SSE) responses | V3 planning |
 | 2026-11-04 | Choose the auth approach (likely cookie sessions in Postgres) and the rate limiter (likely `x/time/rate`), and adopt `chi` only if per-route middleware gets messy. Log decision rows | V4 planning |
+| 2026-11-08 | Set a maximum length for quote text and have the loader enforce it | The Week 4 design pass, when the quote card is designed |
+| 2026-11-08 | Add a CI test that loads the real `content/` files through the loader | The first code PR that lands the loader (Week 2) |
+| 2026-11-08 | Add the strict content test to CI: every mood can fill a full result (3 songs and 2 quotes), and keep it there so a later edit cannot empty a bucket | Week 5, once the dataset is fully curated |
+| 2026-11-08 | Confirm in the `math/rand/v2` docs that the top-level functions are safe for concurrent use, and note the Go version | Week 3, when the catalog filter is built |
